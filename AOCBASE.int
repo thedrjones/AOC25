@@ -61,15 +61,22 @@ TSTOSTR(hd)
     Q dow_", "_$ZDT(hd,7,1)_" GMT"
 
 SAVECOOKIE(cookie)
-    ;Used to update the AOC cookie, set notes on aocdl github to work out how:
+    ;Used to update the AOC cookie, see notes on aocdl github to work out how:
     ;   https://github.com/GreenLightning/advent-of-code-downloader
     N expDate S expDate=(35+$H)_","_$P($ZTS,",",2) ;Now +35 days, near enough
     N expStr S expStr=$$TSTOSTR(expDate)
     S ^AOC("COOKIE")=cookie
     S ^AOC("EXPHORO")=expDate
     S ^AOC("EXPDATE")=expStr
+    I '$D(^AOC("USER-AGENT")) W "Please set a user agent to use [ D USERAGENT^AOCBASE(""YOUR-USER-AGENT-HERE"") ]"
     Q
+
+USERAGENT(useragent)
+    S ^AOC("USER-AGENT")=useragent
+    Q
+
 GETFILE(year,day,path,force)
+    I '$D(^AOC("USER-AGENT")) W "Please set a user agent to use [ D USERAGENT^AOCBASE(""YOUR-USER-AGENT-HERE"") ]" Q
     S force=+$G(force)
     ;Gets file from AOC site, as per aocdl's way of doing it.
     I 'force,##class(%File).Exists(path) W "GETFILE: We have the file "_year_"-"_day_" already",! Q  
@@ -80,13 +87,13 @@ GETFILE(year,day,path,force)
     N request S request=##class(%Net.HttpRequest).%New()
     s request.Server="adventofcode.com"
     s request.Https=1
-    s request.SSLConfiguration="github-tls" ;No need to validate certs, just haver the TLS entry set up
-    D request.SetHeader("User-Agent", "github.com/thedrjones/AOC2025")
+    s request.SSLConfiguration="github-tls" ;No need to validate certs, just have the TLS entry set up
+    D request.SetHeader("User-Agent", ^AOC("USER-AGENT"))
     D request.InsertCookie("session",cookie,"/",".adventofcode.com",expStr,1)
     s status=request.Get("/"_year_"/day/"_+day_"/input")
     ;B ;Check request.Get
-    I request.SSLError["is not actived." D  Q
-    .W "There needs to be an TLS configuration called github-tls",!
+    I request.SSLError["is not activated." D  Q
+    .W "There needs to be an TLS configuration called github-tls (it doesn't need to check certs)",!
     .Q
     I request.HttpResponse.StatusCode'=200 D  Q
     .W "Failed to download the data, please paste it into "_path,!
