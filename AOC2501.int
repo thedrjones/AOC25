@@ -14,28 +14,28 @@ T1  ;;TEST DATA 1;;
     ;;ENDS;;
 
 DOIT(dataset,task,debug)
-    N data,tsStart
-    I dataset=1 D LOAD^AOCBASE(2025,1,.data)
-    I dataset=0 D LOADTD^AOCBASE("T1","AOC2501",.data)
-    S debug=+$G(debug),task=$S(task=2:2,1:1) 
-    D TIMER^AOCBASE("START")
-    D TASK(task,.data,debug)
-    D TIMER^AOCBASE("STOP")
+    N data,tsStart                                  ;data is for the file, tsStart is for timing
+    I dataset=1 D LOAD^AOCBASE(2025,1,.data)        ;Loads actual dataset from file
+    I dataset=0 D LOADTD^AOCBASE("T1",$T(+0),.data) ;Loads test data from the "T1" label above
+    S debug=+$G(debug),task=$S($G(task)=2:2,1:1)    ;Default any missing parameters
+    D TIMER^AOCBASE("START")                        ;Start timer
+    D TASK(task,.data,debug)                        ;Do task
+    D TIMER^AOCBASE("STOP")                         ;Stop/display timer
     Q
 
 TASK(task,data,debug)
-    N ll,hl,i,curpos,xc   
-    S (ll,xc)=0,hl=99,curpos=50  ;default position is 50, range is 0 through 99
+    N i,curpos,xc   
+    S xc=0,curpos=50  ;default position is 50, range is 0 through 99
+    I debug W "The dial starts by pointing at "_curpos,!    
     F i=1:1:data D
-    .N inst S inst=$E(data(i))
-    .N num S num=$E(data(i),2,$L(data(i)))
-    .I i=1,debug W "The dial starts by pointing at "_curpos,!
-    .n x F x=1:1:num D
-    ..S curpos=$S(inst="L":curpos-1,1:curpos+1)
-    ..i (curpos=100) s curpos=0     ;100 does not exist, so make it 0
-    ..i task=2,curpos=0 S xc=xc+1   ;   [Task 2] Then test if it's 0
-    ..i (curpos=-1) s curpos=99     ;-1 does not exist, so make it 99
-    .I task=1,curpos=0 S xc=xc+1    ;[Task 1] only cares if == 0 on turning complete
+    .N inst S inst=$E(data(i))              ;Instruction Left/Right
+    .N num S num=$E(data(i),2,$L(data(i)))  ;Times to click in that direction
+    .N x F x=1:1:num D                      ;For each click ...
+    ..S curpos=$S(inst="L":curpos-1,1:curpos+1) ;L is negative direction, R is positive direction
+    ..S:curpos=100 curpos=0                     ;100 does not exist, so make it 0
+    ..I task=2,curpos=0 S xc=xc+1               ;[Task 2] Then test if it's 0 now
+    ..S:curpos=-1 curpos=99                     ;-1 does not exist, so make it 99
+    .I task=1,curpos=0 S xc=xc+1                ;[Task 1] only cares if == 0 on turns completed
     .I debug W "The dial is rotated "_data(i)_" to point at "_curpos,!
     W "Answer is "_xc,!
     Q
