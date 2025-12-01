@@ -1,0 +1,109 @@
+AOCBASE ;Shared functions to save time in Advent of Code
+
+LOADTD(lbl,rtn,data)
+    ;Loads test data from lbl^rtn, stopping at 1st occurance of ;;ENDS;;. 
+    ;If ;;ENDS;; is not there, it's go one until you give up. 
+    ;Don't forget to start each line in your subroutine with a ;, or it won't compile
+    ;Reads lines, building data() in line with file loader structure
+    I $G(rtn)=""!($G(lbl)="") W "No routine or label given",! Q
+    I '##class(%Library.Routine).Exists(rtn) W "No routine called "_rtn,! Q 
+    N ref,done,x
+    S ref=lbl_"^"_rtn I $ZSTRIP($T(@ref)="","<>W") W "No label called "_lbl_" within "_rtn,! Q
+    ;Routine and label should exist now, so let's read it.
+    S done=0
+    F x=1:1 Q:done  D
+    .S ref=lbl_"+"_x_"^"_rtn
+    .N d s d=$ZSTRIP($T(@ref),"<>W")
+    .I d=";;ENDS;;" s done=1 Q
+    .S data=x
+    .S data(x)=$E(d,2,$L(d))
+    Q
+
+LOADFILE(filepath,data)
+    ;Loads a file from a path in data().
+    K data
+    n file,sc
+    s file=##class(%File).%New(filepath)
+    s sc=file.Open("RS")
+    F  Q:file.AtEnd  D
+    . S line=file.ReadLine()
+    . Q:line=""
+    . S i=$I(data)
+    . S data(i)=line 
+    Q
+
+LOAD(year,day,data)
+    ;Will look if we have the right puzzle input, grabbing it if not
+    ; then will load that puzzle input into data()
+    K data
+    I $L(day)<2 S day="0"_day
+    N folder S folder="/external/"_year
+    I '##class(%File).DirectoryExists(folder) D
+    .S ok=##class(%File).CreateDirectory(folder)
+    I '##class(%File).DirectoryExists(folder) W "Year folder does not exist",! Q
+    N file S file="AOC"_$E(year,3,4)_"-"_day_"-A.txt"
+    N path S path=folder_"/"_file
+    D GETFILE(year,day,path)
+    I '##class(%File).Exists(path) W "Unable to get file "_path,! s data=0 Q
+    ;We should have the file now, so load it
+    D LOADFILE(path,.data)
+    Q
+
+TSTOSTR(hd)
+    ;Quick one to get day of week from $H
+    N dow S dow="Thu"
+    S:+hd#7=1 dow="Fri"
+    S:+hd#7=2 dow="Sat"
+    S:+hd#7=3 dow="Sun"
+    S:+hd#7=4 dow="Mon"
+    S:+hd#7=5 dow="Tue"
+    S:+hd#7=6 dow="Wed"
+    Q dow_", "_$ZDT(hd,7,1)_" GMT"
+
+SAVECOOKIE(cookie)
+    ;Used to update the AOC cookie, set notes on aocdl github to work out how:
+    ;   https://github.com/GreenLightning/advent-of-code-downloader
+    N expDate S expDate=(35+$H)_","_$P($ZTS,",",2) ;Now +35 days, near enough
+    N expStr S expStr=$$TSTOSTR(expDate)
+    S ^AOC("COOKIE")=cookie
+    S ^AOC("EXPHORO")=expDate
+    S ^AOC("EXPDATE")=expStr
+    Q
+GETFILE(year,day,path,force)
+    S force=+$G(force)
+    ;Gets file from AOC site, as per aocdl's way of doing it.
+    I 'force,##class(%File).Exists(path) W "GETFILE: We have the file "_year_"-"_day_" already",! Q  
+    N cookie S cookie=$G(^AOC("COOKIE")) I cookie="" W "GETFILE: Cookie is not present" Q
+    N expHoro S expHoro=$G(^AOC("EXPHORO")) I $ZD(+$ZTS,8)>$ZD(+expHoro,8) W "GETFILE: Cookie has probably expired" Q
+    N expStr S expStr=$G(^AOC("EXPDATE"))
+    ;
+    N request S request=##class(%Net.HttpRequest).%New()
+    s request.Server="adventofcode.com"
+    s request.Https=1
+    s request.SSLConfiguration="github-tls" ;No need to validate certs, just haver the TLS entry set up
+    D request.SetHeader("User-Agent", "github.com/thedrjones/AOC2025")
+    D request.InsertCookie("session",cookie,"/",".adventofcode.com",expStr,1)
+    s status=request.Get("/"_year_"/day/"_+day_"/input")
+    ;B ;Check request.Get
+    I request.SSLError["is not actived." D  Q
+    .W "There needs to be an TLS configuration called github-tls",!
+    .Q
+    I request.HttpResponse.StatusCode'=200 D  Q
+    .W "Failed to download the data, please paste it into "_path,!
+    .W "Status returned: "_request.HttpResponse.StatusCode,!
+    S resp=request.HttpResponse.Data
+    N file s file=##class(%File).%New(path)
+    S sc=file.Open("WSN") I 'sc W "Error opening file for writing",! D $System.Help.DisplayError(.sc) Q
+    S sc=file.CopyFrom(resp) I 'sc W "Error copying stream",! Q 
+    S sc=file.%Save() I 'sc W "Error saving file",! Q
+    W "GETFILE: Grabbed file "_year_"-"_day_" from AOC server",!
+    Q
+
+TIMER(action)
+    I action="START" S tsStart=+$ZTS*86400+$P($ZTS,",",2) Q
+    I action'="STOP" Q
+    N tsNow,tsRes
+    S tsNow=+$ZTS*86400+$P($ZTS,",",2)
+    S tsRes=(tsNow-tsStart)
+    W "Timer: "_$S(tsRes<1:"0",1:"")_tsRes_" seconds",!
+    Q

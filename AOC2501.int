@@ -1,0 +1,41 @@
+AOC2501 ; 2025 Day 1
+
+T1  ;;TEST DATA 1;;
+    ;L68
+    ;L30
+    ;R48
+    ;L5
+    ;R60
+    ;L55
+    ;L1
+    ;L99
+    ;R14
+    ;L82
+    ;;ENDS;;
+
+DOIT(dataset,task,debug)
+    N data,tsStart
+    I dataset=1 D LOAD^AOCBASE(2025,1,.data)
+    I dataset=0 D LOADTD^AOCBASE("T1","AOC2501",.data)
+    S debug=+$G(debug),task=$S(task=2:2,1:1) 
+    D TIMER^AOCBASE("START")
+    D TASK(task,.data,debug)
+    D TIMER^AOCBASE("STOP")
+    Q
+
+TASK(task,data,debug)
+    N ll,hl,i,curpos,xc   
+    S (ll,xc)=0,hl=99,curpos=50  ;default position is 50, range is 0 through 99
+    F i=1:1:data D
+    .N inst S inst=$E(data(i))
+    .N num S num=$E(data(i),2,$L(data(i)))
+    .I i=1,debug W "The dial starts by pointing at "_curpos,!
+    .n x F x=1:1:num D
+    ..S curpos=$S(inst="L":curpos-1,1:curpos+1)
+    ..i (curpos=100) s curpos=0     ;100 does not exist, so make it 0
+    ..i task=2,curpos=0 S xc=xc+1   ;   [Task 2] Then test if it's 0
+    ..i (curpos=-1) s curpos=99     ;-1 does not exist, so make it 99
+    .I task=1,curpos=0 S xc=xc+1    ;[Task 1] only cares if == 0 on turning complete
+    .I debug W "The dial is rotated "_data(i)_" to point at "_curpos,!
+    W "Answer is "_xc,!
+    Q
