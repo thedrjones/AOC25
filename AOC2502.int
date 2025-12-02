@@ -1,0 +1,55 @@
+AOC2502 ;; 2025 Day 2
+
+T1  ;;TEST DATA 1;;
+    ;11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124
+    ;;ENDS;;
+
+DOIT(dataset,task,debug)
+    N data,tsStart
+    S debug=+$G(debug),task=$S(task=2:2,1:1) 
+    I dataset=1 D LOAD^AOCBASE(2025,2,.data)
+    I dataset=0 D LOADTD^AOCBASE("T1",$T(+0),.data)
+    D TIMER^AOCBASE("START")
+    D TASK(task,.data,debug)
+    D TIMER^AOCBASE("STOP")
+    Q
+
+TASK(task,data,debug)
+    N res S res=0
+    N rangeId F rangeId=1:1:$L(data(1),",") D 
+    .N range,to,from
+    .S range=$P(data(1),",",rangeId)
+    .S from=$P(range,"-",1)
+    .S to=$P(range,"-",2)
+    .W:debug rangeId,?10,from,?25,to,!
+    .N prodCode
+    .F prodCode=from:1:to D
+    ..I task=1 D
+    ...N p1,p2
+    ...S p1=$E(prodCode,1,($L(prodCode)/2))
+    ...S p2=$E(prodCode,$L(prodCode)/2+1,$L(prodCode))
+    ...I p1'=p2 Q
+    ...W:debug ?40,"Invalid ID:"_prodCode,!
+    ...S res=res+prodCode
+    ..I task=2 D
+    ...Q:'$$RESCHK(prodCode,debug)
+    ...W:debug ?40,"Invalid ID:"_prodCode,!
+    ...S res=res+prodCode
+    W "Answer is "_res,!
+    Q
+
+RESCHK(prodCode,debug)
+    ;Checks to see if a number of recurring substrings matches the product code. Largest to smallest.
+    N split,isRecur S isRecur=0
+    W:debug "Code: "_prodCode_" [Len: "_$L(prodCode)_"]",!
+    F split=($L(prodCode)\2):-1:1 D     ;Start halfway and then work out, integer divide here as 9/2 is not a valid split
+    .Q:$L(prodCode)#split'=0            ;No point in carrying on if there is a remainder, it won't be recursive
+    .Q:isRecur                          ;We already know the answer is recursive
+    .N count S count=$L(prodCode)/split
+    .N test S test=$E(prodCode,1,split)
+    .W:debug ?25,"Split point:"_$J(split,3)_" | Count:"_$J(count,3)_" | Test String: "_test,!
+    .N testProd S testProd=test
+    .F x=2:1:count S testProd=testProd_test
+    .I testProd=prodCode s isRecur=1
+    Q isRecur
+
