@@ -48,8 +48,6 @@ RESCHK(prodCode,debug)
     .N count S count=$L(prodCode)/split
     .N test S test=$E(prodCode,1,split)
     .W:debug ?25,"Split point:"_$J(split,3)_" | Count:"_$J(count,3)_" | Test String: "_test,!
-    .N testProd S testProd=test
-    .F x=2:1:count S testProd=testProd_test
-    .I testProd=prodCode s isRecur=1
+    .N matchExp S matchExp=count_""""_test_""""     ;count("test"), e.g. 3("123") to check match with 123123123
+    .S isRecur=prodCode?@(matchExp)     ;Indirectly pattern match [match prodCode with the pattern defined in matchExp]
     Q isRecur
-
