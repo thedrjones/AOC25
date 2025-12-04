@@ -1,0 +1,71 @@
+AOC2504 ;; 2025 Day 4
+
+T1  ;;TEST DATA 1;;
+    ;..@@.@@@@.
+    ;@@@.@.@.@@
+    ;@@@@@.@.@@
+    ;@.@@@@..@.
+    ;@@.@@@@.@@
+    ;.@@@@@@@.@
+    ;.@.@.@.@@@
+    ;@.@@@.@@@@
+    ;.@@@@@@@@.
+    ;@.@.@@@.@.
+    ;;ENDS;;
+
+DOIT(dataset,task,debug)
+    N data,tsStart
+    S debug=+$G(debug),task=$S(task=2:2,1:1) 
+    I dataset=1 D LOAD^AOCBASE(2025,4,.data)
+    I dataset=0 D LOADTD^AOCBASE("T1",$T(+0),.data)
+    N resall S resall=0
+    D TIMER^AOCBASE("START")
+    I task=1 S resall=$$TASK1(task,.data,debug)
+    I task=2 S resall=$$TASK2(task,.data,debug)
+    D TIMER^AOCBASE("STOP")
+    W "Answer is "_resall,!
+    Q
+
+TASK1(task,data,debug)
+    N x,y,rollNo,res S res=0
+    F y=1:1:data D          ;y = each line
+    .F x=1:1:$L(data(y)) D  ;x = each char in line
+    ..Q:$E(data(y),x)'="@"
+    ..N total
+    ..S total=$$EVALBARRIER(y,x)
+    ..I total'<4 Q
+    ..S res=res+1
+    ..I task=2 S history(iterCount,res)=y_"`"_x
+    W:debug "Task 1 Iteration: "_+$G(iterCount)_" Count: "_res,!
+    Q res
+
+TASK2(task,data,debug)
+    N tres,iterCount,history
+    S (iterCount,done,tres)=0
+    F  Q:done  D
+    .S iterCount=iterCount+1
+    .W:debug "Iteration Count:"_iterCount,!
+    .N iterRes S iterRes=$$TASK1(task,.data,debug)
+    .I iterRes=0 S done=1 W:debug "Result of pass was 0",! Q
+    .N roll S roll="" F  S roll=$O(history(iterCount,roll)) Q:roll=""  D
+    ..N x,y 
+    ..S y=$P(history(iterCount,roll),"`",1)    
+    ..S x=$P(history(iterCount,roll),"`",2)    
+    ..S $E(data(y),x)="."
+    ..W:debug " * Marking y="_y_" x="_x_" as removed",!
+    .I debug=2 ZW data B ;Used to check the pattern
+    .S tres=tres+iterRes
+    Q tres
+
+
+EVALBARRIER(y,x)
+    N barriers S barriers=0
+    F dir="N","NE","E","SE","S","SW","W","NW" D
+    .N y1,x1 S y1=y,x1=x
+    .I dir["N" S y1=y1-1,x1=x1 Q:(y1=0)
+    .I dir["S" S y1=y1+1,x1=x1 Q:(y1>data)
+    .I dir["W" S y1=y1,x1=x1-1 Q:(x1=0)
+    .I dir["E" S y1=y1,x1=x1+1 Q:(x1>$L(data(y)))
+    .I $E(data(y1),x1)="@" S barriers=barriers+1
+    Q barriers
+

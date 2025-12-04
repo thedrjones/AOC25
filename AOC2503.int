@@ -1,0 +1,38 @@
+AOC2503 ;; 2025 Day 3
+
+T1  ;;TEST DATA 1;;
+    ;987654321111111
+    ;811111111111119
+    ;234234234234278
+    ;818181911112111
+    ;;ENDS;;
+
+DOIT(dataset,task,debug)
+    N data,tsStart
+    S debug=+$G(debug),task=$S(task=2:2,1:1) 
+    I dataset=1 D LOAD^AOCBASE(2025,3,.data)
+    I dataset=0 D LOADTD^AOCBASE("T1",$T(+0),.data)
+    D TIMER^AOCBASE("START")
+    D:task=1 TASK1(.data,debug)
+    D:task=2 TASK2(.data,debug)
+    D TIMER^AOCBASE("STOP")
+    Q
+
+TASK1(data,debug)
+    N res S res=0
+    N b F b=1:1:data D
+    .N cellHigh,cellLow S (cellHigh,cellLow)=""
+    .N c F c=1:1:$L(data(b)) D
+    ..N cellJolt S cellJolt=$E(data(b),c)
+    ..I c=1 S cellHigh=cellJolt Q
+    ..I c=$L(data(b)),(cellJolt>cellLow) S cellLow=cellJolt Q
+    ..I cellJolt>cellHigh S cellHigh=cellJolt,cellLow=0 Q
+    ..I cellJolt>cellLow S cellLow=cellJolt
+    .S res=res+(cellHigh_cellLow)
+    .W:debug " * Battery "_b_": Highest Joltage="_cellHigh_cellLow,?40,"Sum: "_res,!
+    W "Answer is: "_res,!
+    Q
+  
+TASK2(data,debug)
+    ;In progress
+    Q
