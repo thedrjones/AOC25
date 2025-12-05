@@ -31,3 +31,10 @@ Update: Part two now complete (on day 4), runs in 0.004 seconds, quite happy wit
 Part one is a nice simple task, just work out the position to check how may can be removed. I wondered if part two would be something about moving more, so made it so it could be called multiple times, a good gamble it would seem.
 
 Part two is just recurring part one with an extra step to remove those you've found could be removed. It ran through 63 (64th iteration had no removals) iterations in 0.48 seconds, which is good enough for me to not feel the need to optimize.
+
+## Day 5
+Part one mentioning overlapping ranges made be strategise as to if we would need to include how many ranges a product appeared in different ranges in part 2 ... so I somewhat over-engineered my solution for it as a hedge. I also anticipated that checking for products within each range iteration would be slower than just checking the entire item list for the upper and lower bounds of each range. 0.7 ms was my reward for that.
+
+Part two was one those "it sounds simple ... at first". It took me a while to come up with the best solution for doing range combining and culling, I had a false start or two, but I think the one I went with was the quickest without resorting to dirty tricks in 2.5 ms.
+
+It's a later than usual answer, but it's been a day full of distractions ... which probably never helped with how long it took to finish.

@@ -1,0 +1,95 @@
+AOC2505 ;; 2025 Day 5
+
+T1  ;;TEST DATA 1;;
+    ;3-5
+    ;10-14
+    ;16-20
+    ;12-18
+    ;
+    ;1
+    ;5
+    ;8
+    ;11
+    ;17
+    ;32
+    ;;ENDS;;
+
+DOIT(dataset,task,debug)
+    N data,tsStart
+    S debug=+$G(debug),task=$S(task=2:2,1:task)
+    I dataset=1 D LOAD^AOCBASE(2025,5,.data)
+    I dataset=0 D LOADTD^AOCBASE("T1",$T(+0),.data)
+    D TIMER^AOCBASE("START")
+    D:task=1 TASK1(task,.data,debug)
+    D:task=2 TASK2(task,.data,debug)
+    D TIMER^AOCBASE("STOP")
+    Q
+
+TASK1(task,data,debug)
+    N res,freshRange,itemList S res=0
+    D PREP(task,.data,debug)
+    ;-----------------------------------------------------
+    W:debug "Lookup Phase...",!
+    N rangeId S rangeId=""
+    F  S rangeId=$O(freshRange(rangeId)) Q:rangeId=""  D
+    .N from,to
+    .S from=$P(freshRange(rangeId),"-")
+    .S to=$P(freshRange(rangeId),"-",2)
+    .W:debug "Evaluating items within "_from_"-"_to,!
+    .N done,item S done=0,item=from
+    .F  Q:done  D
+    ..S item=$O(itemList(item))
+    ..I item>to S done=1 Q
+    ..S itemList(item)=itemList(item)+1
+    ;-----------------------------------------------------
+    W:debug "Answer Phase...",!
+    N item S item=""
+    F  S item=$O(itemList(item)) Q:item=""  D
+    .I task=1 S:itemList(item)'=0 res=res+1
+    W "Answer is "_res,!
+    Q
+
+TASK2(task,data,debug)
+    N res,freshRange,itemList S res=0
+    D PREP(task,.data,debug)
+    ;-----------------------------------------------------
+    W:debug "Compacting Ranges Phase...",!
+    N rangeId S rangeId=""
+    F  S rangeId=$O(freshRange(rangeId)) Q:rangeId=""  D
+    .N rangeFrom,rangeTo,checkId
+    .S rangeFrom=$P(freshRange(rangeId),"-")
+    .S rangeTo=$P(freshRange(rangeId),"-",2)
+    .S checkId=rangeId ;Now Point in comparing this to itself.
+    .F  S checkId=$O(freshRange(checkId)) Q:checkId=""  D
+    ..N checkFrom,checkTo
+    ..S checkFrom=$P(freshRange(checkId),"-")
+    ..S checkTo=$P(freshRange(checkId),"-",2)
+    ..;Out of range checking to stop the updates below
+    ..Q:checkFrom>rangeTo
+    ..Q:checkTo<rangeFrom
+    ..;Anything below here may need us to update ranges
+    ..S:checkTo>rangeTo rangeTo=checkTo
+    ..S:checkFrom<rangeFrom rangeFrom=checkFrom
+    ..S freshRange(rangeId)=rangeFrom_"-"_rangeTo
+    ..K freshRange(checkId) ;Remove redundant checking range
+    ..S checkId=rangeId     ;Flag outer loop to restart checks on the new range
+    ;-----------------------------------------------------
+    W:debug !,"Answer Phase...",!
+    F  S rangeId=$O(freshRange(rangeId)) Q:rangeId=""  D
+    .N from S from=$P(freshRange(rangeId),"-")
+    .N to S to=$P(freshRange(rangeId),"-",2)
+    .W:debug "Range "_from_"-"_to_"   Adding "_(to-from+1),!
+    .S res=res+(to-from+1)
+    W "Answer is "_res,!
+    Q
+
+PREP(task,data,debug)
+    W:debug "Preparation Phase...",!
+    N x,rangeId S rangeId=0
+    F x=1:1:data D
+    .I $G(data(x))="" Q
+    .I data(x)["-" S rangeId=rangeId+1,freshRange(rangeId)=data(x)
+    .Q:task'=1 ;Anything left is an item
+    .S itemList(data(x))=0
+    .W:debug "Added item "_data(x),!
+    Q
