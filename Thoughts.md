@@ -25,6 +25,8 @@ Part two was harder to work out than I can to admit too, I had a number of false
 
 Today was a busy day at work and with evening visits to friends, so I've not quite finished the part 2 solution yet, but hopefully I'll manage to finish it in the next few days.
 
+Update: Part two now complete (on day 4), runs in 0.004 seconds, quite happy with it.
+
 ## Day 4 
 Part one is a nice simple task, just work out the position to check how may can be removed. I wondered if part two would be something about moving more, so made it so it could be called multiple times, a good gamble it would seem.
 

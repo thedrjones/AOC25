@@ -9,7 +9,7 @@ T1  ;;TEST DATA 1;;
 
 DOIT(dataset,task,debug)
     N data,tsStart
-    S debug=+$G(debug),task=$S(task=2:2,1:1) 
+    S debug=+$G(debug),task=$S(task=2:2,1:1)
     I dataset=1 D LOAD^AOCBASE(2025,3,.data)
     I dataset=0 D LOADTD^AOCBASE("T1",$T(+0),.data)
     D TIMER^AOCBASE("START")
@@ -32,7 +32,33 @@ TASK1(data,debug)
     .W:debug " * Battery "_b_": Highest Joltage="_cellHigh_cellLow,?40,"Sum: "_res,!
     W "Answer is: "_res,!
     Q
-  
+
+
 TASK2(data,debug)
-    ;In progress
+    N res S res=0
+    N battery F battery=1:1:data D
+    .;N cells,cellPos F cellPos=1:1:$L(data(battery)) D
+    .S cells=$$EVALCELLS(12,data(battery))
+    .S res=res+cells
+    .W:debug " * Battery "_battery_": Highest Joltage="_cells,?45,"Sum: "_res,!
+    .B:debug=2
+    W "Answer is "_res,!
     Q
+
+EVALCELLS(cellMax,cellList)
+    N bestCells,cellPos,startPos,endPos,done
+    S bestCells=$J(" ",cellMax)
+    S done=0,(cellPos,startPos)=1
+    F  Q:done  D
+    .S endPos=$L(cellList)-(12-cellPos)    ;We need a rolling window. (if we're looking for the first cell we still need to find 11 more)
+    .W:debug "Window for digit "_cellPos_" is from "_startPos_" to "_endPos,!
+    .N pos F pos=startPos:1:endPos D
+    ..N thisCell S thisCell=$E(cellList,pos)
+    ..Q:$E(bestCells,cellPos)'<thisCell
+    ..S $E(bestCells,cellPos)=$E(cellList,pos),startPos=pos+1
+    ..W:debug " * Trying "_$E(cellList,pos)_" @ "_pos,!
+    ..I $E(bestCells,cellPos)=9 S pos=endPos
+    .I cellPos=cellMax S done=1 Q
+    .S cellPos=cellPos+1
+    W:debug " * Best Cells here are "_bestCells,!
+    Q bestCells
