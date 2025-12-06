@@ -38,3 +38,14 @@ Part one mentioning overlapping ranges made be strategise as to if we would need
 Part two was one those "it sounds simple ... at first". It took me a while to come up with the best solution for doing range combining and culling, I had a false start or two, but I think the one I went with was the quickest without resorting to dirty tricks in 2.5 ms.
 
 It's a later than usual answer, but it's been a day full of distractions ... which probably never helped with how long it took to finish.
+
+## Day 6
+An easy puzzle to lull me into the weekend, which makes me worry what will come tomorrow. 
+
+I do like the logic of [reverse polish notation](https://en.wikipedia.org/wiki/Reverse_Polish_notation), this is clearly the inspiration here.
+
+If I thought more about it at first, I could have written something for part one that could have been reused mroe for part 2 just chaning the read order, but not to worry.
+
+The MUMPS eXecute command is a really good one for getting away with all kinds of lazy naughtyness. If you ever execte something the user inputs, be very careful. You can chain all sorts in there and it won't really validate it.
+
+All done in <5ms (part 1) and <3ms (part 2).

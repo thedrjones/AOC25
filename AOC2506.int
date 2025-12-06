@@ -1,0 +1,53 @@
+AOC2506 ;; 2025 Day 6
+
+T1  ;;TEST DATA 1;;
+    ;123 328  51 64
+    ; 45 64  387 23
+    ;  6 98  215 314
+    ;*   +   *   +
+    ;;ENDS;;
+
+DOIT(dataset,task,debug)
+    N data,tsStart
+    S debug=+$G(debug),task=$S(task=2:2,1:1)
+    I dataset=1 D LOAD^AOCBASE(2025,6,.data)
+    I dataset=0 D LOADTD^AOCBASE("T1",$T(+0),.data),FIXTEST
+    D TIMER^AOCBASE("START")
+    D:task=1 TASK1(task,.data,debug)
+    D:task=2 TASK2(task,.data,debug)
+    D TIMER^AOCBASE("STOP")
+    Q
+
+FIXTEST ;Needed because my test data loader tends to strip trailing spaces
+    F l=1:1:data S:$L(data(l))<15 $E(data(l),15)=" "
+    Q
+
+TASK1(task,data,debug)
+    N res,rpn S res=0
+    N l F l=1:1:data D
+    .S line=$ZSTRIP(data(l),"<=>W")
+    .N i F i=1:1:$L(line," ") D
+    ..N str S str=$P(line," ",i)
+    ..I str'?1.100N D  Q
+    ..S rpn(i)=$TR(rpn(i),"`",str)
+    ..S $P(rpn(i),"`",l)=str
+    ;Now it's just an array of sums
+    N c S c="" F  S c=$O(rpn(c)) Q:c=""  D
+    .X "S res="_rpn(c)_"+res"
+    W "Answer is "_res,!
+    Q
+
+TASK2(task,data,debug)
+    N offset,oc,sum,res S (res,oc)=0,sum=""
+    N p F p=$L(data(data)):-1:1 D
+    .N l F l=1:1:data D
+    ..N ch S ch=$E(data(l),p) I ch="" S ch=" "
+    ..W:debug=2 "ch="_ch_" @ data["_p_"]:["_l_"]",!
+    ..I "*+"'[ch S sum=sum_ch Q
+    ..;Operator change means we need to do the sum now (RPN!)
+    ..S sum=$TR($ZSTRIP(sum,"<=>W")," ",ch)
+    ..W:debug "Problem is "_sum,!
+    ..X "S res=("_sum_")+res"
+    ..S sum=""
+    W "Answer is "_res,!
+    Q
