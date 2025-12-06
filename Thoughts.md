@@ -48,4 +48,6 @@ If I thought more about it at first, I could have written something for part one
 
 The MUMPS eXecute command is a really good one for getting away with all kinds of lazy naughtyness. If you ever execte something the user inputs, be very careful. You can chain all sorts in there and it won't really validate it.
 
+$ZSTRIP is a InterSystems specific command I think, it can remove occurances of a pattern, in this code, "<=>W" mean trim leading, repeating and trailing whitespace from the string. 
+
 All done in <5ms (part 1) and <3ms (part 2).
